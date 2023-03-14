@@ -40,13 +40,19 @@ function getOrderData() {
         ingredients.push($(this).val());
     });
 
+    let beverages = [];
+    $.each($("input[name='beverages']:checked"), function (el) {
+        beverages.push($(this).val());
+    });
+
     return {
         client_name: $("input[name='name']").val(),
         client_dni: $("input[name='dni']").val(),
         client_address: $("input[name='address']").val(),
         client_phone: $("input[name='phone']").val(),
         size_id: $("input[name='size']:checked").val(),
-        ingredients
+        ingredients,
+        beverages
     };
 }
 
@@ -59,14 +65,23 @@ function showNotification() {
     setTimeout(() => orderAlert.toggle(), 5000);
 }
 
-
 // Gather information in a dynamic way
+
+function fetchBeverages() {
+    fetch('http://127.0.0.1:5000/beverage/')
+        .then(response => response.json())
+        .then(beverages => {
+            let rows = beverages.map(beverage => createIngredientTemplate(beverage));
+            let table = $("#beverages tbody");
+            table.append(rows);
+        });
+}
 
 function fetchIngredients() {
     fetch('http://127.0.0.1:5000/ingredient/')
         .then(response => response.json())
         .then(ingredients => {
-            let rows = ingredients.map(element => createIngredientTemplate(element));
+            let rows = ingredients.map(ingredient => createBeverageTemplate(ingredient));
             let table = $("#ingredients tbody");
             table.append(rows);
         });
@@ -76,10 +91,15 @@ function fetchOrderSizes() {
     fetch('http://127.0.0.1:5000/size/')
         .then(response => response.json())
         .then(sizes => {
-            let rows = sizes.map(element => createSizeTemplate(element));
+            let rows = sizes.map(size => createSizeTemplate(size));
             let table = $("#sizes tbody");
             table.append(rows);
         });
+}
+
+function createBeverageTemplate(beverage) {
+    let template = $("#beverages-template")[0].innerHTML;
+    return Mustache.render(template, beverage);
 }
 
 function createIngredientTemplate(ingredient) {
@@ -94,6 +114,7 @@ function createSizeTemplate(size) {
 
 function loadInformation() {
     fetchIngredients();
+    fetchBeverages();
     fetchOrderSizes();
 }
 

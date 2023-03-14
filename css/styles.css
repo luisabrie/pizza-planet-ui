@@ -10,10 +10,18 @@
   display: none;
 }
 
+#beverage-alert {
+  display: none;
+}
+
 #size-alert {
   display: none;
 }
 
 .order {
   display: none;
+}
+
+.w-33 {
+  width: 33%;
 }

@@ -1,4 +1,13 @@
 
+/**
+ * Shows a notification when the ingredient is accepted
+ */
+function showNotification() {
+    let ingredientAlert = $("#ingredient-alert");
+    ingredientAlert.toggle();
+    setTimeout(() => ingredientAlert.toggle(), 5000);
+}
+
 function fetchIngredient(_id) {
     fetch(`http://127.0.0.1:5000/ingredient/id/${_id}`)
         .then(response => response.json())
@@ -56,14 +65,7 @@ function getIngredientData() {
     };
 }
 
-/**
- * Shows a notification when the ingredient is accepted
- */
-function showNotification() {
-    let ingredientAlert = $("#ingredient-alert");
-    ingredientAlert.toggle();
-    setTimeout(() => ingredientAlert.toggle(), 5000);
-}
+
 
 
 window.onload = loadInformation;
