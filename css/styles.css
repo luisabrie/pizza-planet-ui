@@ -2,6 +2,10 @@
   padding: 1em 1em;
 }
 
+.card-title {
+  text-transform:uppercase !important;
+}
+
 #order-alert {
   display: none;
 }
