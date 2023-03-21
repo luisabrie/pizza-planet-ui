@@ -1,0 +1,83 @@
+name: Deploy to S3 and CloudFront
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Setup AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Setup Terraform Variables
+        working-directory: ./infrastructure
+        id: vars
+        run: |-
+          cat << EOF > terraform.tfvars
+          CERTIFICATE_ARN = "${{ secrets.CERTIFICATE_ARN }}"
+          DNS_ZONE_ID = "${{ secrets.DNS_ZONE_ID }}"
+          EOF
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
+      - name: Terraform format
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Init
+        working-directory: ./infrastructure
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ./infrastructure
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        working-directory: ./infrastructure
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+      - name: Terraform Apply
+        working-directory: ./infrastructure
+        id: apply
+        run: terraform apply -auto-approve -no-color
+
+      - name: Get CloudFront Distribution ID
+        working-directory: ./infrastructure
+        id: get_distribution_id
+        run: echo DISTRIBUTION_ID=$(terraform-bin output -raw cloudfront_distribution) >> $GITHUB_OUTPUT
+
+      - name: Get Bucket Name
+        working-directory: ./infrastructure
+        id: get_bucket_name
+        run: echo S3_BUCKET_NAME=$(terraform-bin output -raw bucket_name) >> $GITHUB_OUTPUT
+
+      - name: Replace API URL
+        working-directory: ./webapp
+        run: find . -type f -name '*.js' -exec sed -i 's#http://127.0.0.1:5000#https://api.pizza.abrie.net#g' {} +
+      
+      - name: Deploy to S3
+        working-directory: ./webapp
+        run: aws s3 sync . s3://${{ steps.get_bucket_name.outputs.S3_BUCKET_NAME }} --delete
+
+      - name: Invalidate CloudFront Distribution
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ steps.get_distribution_id.outputs.DISTRIBUTION_ID }}
+          PATHS: '/*'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

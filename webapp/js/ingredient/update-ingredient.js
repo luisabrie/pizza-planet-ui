@@ -5,7 +5,7 @@
 function showNotification() {
     let ingredientAlert = $("#ingredient-alert");
     ingredientAlert.toggle();
-    setTimeout(() => ingredientAlert.toggle(), 5000);
+    setTimeout(() => ingredientAlert.toggle(), 1500);
 }
 
 function fetchIngredient(_id) {
@@ -27,7 +27,7 @@ function loadInformation() {
 
 function putIngredient(ingredient) {
 
-    fetch('http://127.0.0.1:5000/ingredient/', {
+    return fetch('http://127.0.0.1:5000/ingredient/', {
         method: 'PUT',
         body: JSON.stringify(ingredient),
         headers: {
@@ -46,12 +46,11 @@ function putIngredient(ingredient) {
 let ingredientForm = $("#ingredient-form");
 ingredientForm.submit(event => {
 
-    let ingredient = getIngredientData();
-    putIngredient(ingredient);
-
     event.preventDefault();
-    event.currentTarget.reset();
-    window.location.href = '/app/ingredient/ingredients.html';
+    let ingredient = getIngredientData();
+    putIngredient(ingredient).then(res => {
+        setTimeout(() => window.location.href = "/app/ingredient/ingredients.html", 2000);
+    });
 });
 
 /**

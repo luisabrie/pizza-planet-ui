@@ -35,6 +35,7 @@ orderForm.submit(event => {
  * Gets the order data with JQuery
  */
 function getOrderData() {
+    debugger
     let ingredients = [];
     $.each($("input[name='ingredients']:checked"), function (el) {
         ingredients.push($(this).val());
@@ -71,7 +72,7 @@ function fetchBeverages() {
     fetch('http://127.0.0.1:5000/beverage/')
         .then(response => response.json())
         .then(beverages => {
-            let rows = beverages.map(beverage => createIngredientTemplate(beverage));
+            let rows = beverages.map(beverage => createBeverageTemplate(beverage));
             let table = $("#beverages tbody");
             table.append(rows);
         });
@@ -81,7 +82,7 @@ function fetchIngredients() {
     fetch('http://127.0.0.1:5000/ingredient/')
         .then(response => response.json())
         .then(ingredients => {
-            let rows = ingredients.map(ingredient => createBeverageTemplate(ingredient));
+            let rows = ingredients.map(ingredient => createIngredientTemplate(ingredient));
             let table = $("#ingredients tbody");
             table.append(rows);
         });

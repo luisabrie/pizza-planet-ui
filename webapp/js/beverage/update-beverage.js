@@ -4,7 +4,7 @@
 function showNotification() {
     let beverageAlert = $("#beverage-alert");
     beverageAlert.toggle();
-    setTimeout(() => beverageAlert.toggle(), 5000);
+    setTimeout(() => beverageAlert.toggle(), 1500);
 }
 
 function fetchBeverage(_id) {
@@ -14,7 +14,6 @@ function fetchBeverage(_id) {
             $("#_id").val(beverage._id);
             $("#name").val(beverage.name);
             $("#price").val(beverage.price);
-
         });
 }
 
@@ -26,15 +25,15 @@ function loadInformation() {
 
 function putBeverage(beverage) {
 
-    fetch('http://127.0.0.1:5000/beverage/', {
+    return fetch('http://127.0.0.1:5000/beverage/', {
         method: 'PUT',
         body: JSON.stringify(beverage),
         headers: {
             "Content-Type": "application/json; charset=utf-8",
         },
     })
-        .then(res => res.json())
-        .then(res => showNotification());
+    .then(res => res.json())
+    .then(res => showNotification())
 
 
 }
@@ -45,12 +44,11 @@ function putBeverage(beverage) {
 let beverageForm = $("#beverage-form");
 beverageForm.submit(event => {
 
-    let beverage = getBeverageData();
-    putBeverage(beverage);
-
     event.preventDefault();
-    event.currentTarget.reset();
-    window.location.href = '/app/beverage/beverages.html';
+    let beverage = getBeverageData();
+    putBeverage(beverage).then(res => {
+        setTimeout(() => window.location.href = "/app/beverage/beverages.html", 2000);
+    });
 });
 
 /**
